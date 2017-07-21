@@ -12,6 +12,7 @@ import {
   Platform
 } from 'react-native';
 import HomeView from './HomeView';
+import LoginView from './LoginView';
 import ArtistDetailView from './ArtistDetailView';
 import {Scene, Router} from 'react-native-router-flux';
 
@@ -22,6 +23,7 @@ class PlatziMusic extends React.Component {
 
     return <Router>
       <Scene key="root">
+        <Scene key="login" component={LoginView} hideNavBar />
         <Scene key="home" component={HomeView} hideNavBar />
         <Scene key="artistDetail" component={ArtistDetailView} hideNavBar={isAndroid} />
       </Scene>
