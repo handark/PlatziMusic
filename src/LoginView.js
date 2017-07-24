@@ -11,12 +11,25 @@ import {
   Text
 } from 'react-native';
 import FBSDK, {
-  LoginButton,
-  AccessToken
+  AccessToken,
+  LoginButton
 } from 'react-native-fbsdk';
 
+import { Actions } from 'react-native-router-flux'
 
 export default class LoginView extends Component {
+
+    handleLoginFinished = (error, result) => {
+        if (error) {
+            console.error(error)
+        } else if (result.isCancelled) {
+            alert("login is cancelled.");
+        } else {
+            AccessToken.getCurrentAccessToken().then(() => {
+                Actions.home();
+            })
+        }   
+    }
 
   render() {
 
@@ -24,21 +37,8 @@ export default class LoginView extends Component {
         <View style={styles.container} >
             <Text style={styles.welcome} >Bienvenidos a PlatziMusic</Text>
             <LoginButton
-                readPermissions={["publish_profile","email","user_friends"]}
-                onLoginFinished={
-                    (error, result) => {
-                        if (error) {
-                            console.error(error)
-                        } else if (result.isCancelled) {
-                            alert("login is cancelled.");
-                        } else {
-                        AccessToken.getCurrentAccessToken().then(
-                            (data) => {
-                                alert(data.accessToken.toString())
-                            })
-                        }   
-                    }
-                }
+                readPermissions={["public_profile","email"]}
+                onLoginFinished={ this.handleLoginFinished }
                 onLogoutFinished={() => alert("logout.")} 
             />
         </View>
