@@ -8,7 +8,8 @@ import React, { Component } from 'react';
 import {
   StyleSheet,
   View,
-  Text
+  Text,
+  Button
 } from 'react-native';
 import FBSDK, {
   AccessToken,
@@ -16,8 +17,36 @@ import FBSDK, {
 } from 'react-native-fbsdk';
 
 import { Actions } from 'react-native-router-flux'
+import firebase, { firebaseAut } from "./firebase";
+
+const { FacebookAuthProvider } = firebase.auth;
+
 
 export default class LoginView extends Component {
+
+    state = {
+        credentials: null
+    }
+
+    componentWillMount(){
+        this.authenticateUser()
+    }
+
+    authenticateUser = () => {
+        AccessToken.getCurrentAccessToken().then((data) => {
+            const { accessToken } = data
+            const credential = FacebookAuthProvider.credential(accessToken)
+            firebaseAut.signInWithCredential(credential).then((credentials) => {
+                //this.setState({ credentials })
+                Actions.home();
+
+            }, function(error) {
+                console.log("Sign In Error", error);
+            });
+        }).catch((error)=>{
+            console.log("Sign in error", error)
+        });
+    }
 
     handleLoginFinished = (error, result) => {
         if (error) {
@@ -25,10 +54,14 @@ export default class LoginView extends Component {
         } else if (result.isCancelled) {
             alert("login is cancelled.");
         } else {
-            AccessToken.getCurrentAccessToken().then(() => {
-                Actions.home();
-            })
+            this.authenticateUser()
+            //Actions.home();
+
         }   
+    }
+
+    handleButtonPress = () => {
+        Actions.home();
     }
 
   render() {
