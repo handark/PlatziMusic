@@ -3,15 +3,54 @@ import {
   StyleSheet,
   Text,
   View,
-  Image
+  Image,
+  TouchableOpacity
 } from 'react-native';
 import Icon from "react-native-vector-icons/Ionicons"
 
+import { firebaseDatabase } from './firebase'
+
+
 export default class ArtistBox extends Component {
+
+    state = {
+        like: false
+    }
+
+
+    handlePress = () => {
+
+        const { id } = this.props.artist
+        this.setState({ like: !this.state.like })
+
+        firebaseDatabase.ref(`artist/${id}`).set()
+    }
+
+    toggleLike = () => {
+        postRef.transaction(function(artist) {
+            if (artist) {
+            if (artist.stars && artist.stars[uid]) {
+                artist.starCount--;
+                artist.stars[uid] = null;
+            } else {
+                artist.starCount++;
+                if (!artist.stars) {
+                artist.stars = {};
+                }
+                artist.stars[uid] = true;
+            }
+            }
+            return artist;
+        });   
+    }
+
   render() {
 
     //console.warn(`El nombre es ${this.props.artist.name}`)
     const { image, name, likes, comments } = this.props.artist;
+    const likeIcon = this.state.like ? 
+        <Icon name="ios-heart" size={30}  color='#e74c3c' /> : 
+        <Icon name="ios-heart-outline" size={30}  color='gray' />
 
     return (
         <View style={styles.artistBox} >
@@ -20,7 +59,10 @@ export default class ArtistBox extends Component {
                 <Text style={styles.name} >{name}</Text>
                 <View style={styles.row} >
                     <View style={styles.iconContainer} >
-                        <Icon name="ios-heart-outline" size={30}  color='gray' />
+                        <TouchableOpacity onPress={this.handlePress} >
+                            {likeIcon}
+                        </TouchableOpacity>
+                        
                         <Text style={styles.count} >{likes}</Text>
                     </View>
                     <View style={styles.iconContainer}>
