@@ -8,39 +8,63 @@ import {
 } from 'react-native';
 import Icon from "react-native-vector-icons/Ionicons"
 
-import { firebaseDatabase } from './firebase'
+import { firebaseDatabase, firebaseAut } from './firebase'
 
 
 export default class ArtistBox extends Component {
 
     state = {
-        like: false
+        liked: false,
+        likeCount: 0
+    }
+
+    componentWillMount(){
+        const { uid } = firebaseAut.currentUser
+        this.getArtistRef().on('value',  shapshot => {
+            const artist = shapshot.val()
+            if(artist){
+                this.setState({
+                    likeCount: artist.likeCount,
+                    liked: artist.likes && artist.likes[uid]
+                })
+            }
+        } )
     }
 
 
     handlePress = () => {
+       // this.setState({ liked: !this.state.liked })
 
-        const { id } = this.props.artist
-        this.setState({ like: !this.state.like })
-
-        firebaseDatabase.ref(`artist/${id}`).set()
+        this.toggleLike(!this.state.liked)
     }
 
-    toggleLike = () => {
-        postRef.transaction(function(artist) {
+    getArtistRef = () => {
+        const { id } = this.props.artist
+        return firebaseDatabase.ref(`artist/${id}`)
+    }
+
+    toggleLike = (liked) => {
+        const { uid } = firebaseAut.currentUser
+
+        this.getArtistRef().transaction(function(artist) {
             if (artist) {
-            if (artist.stars && artist.stars[uid]) {
-                artist.starCount--;
-                artist.stars[uid] = null;
-            } else {
-                artist.starCount++;
-                if (!artist.stars) {
-                artist.stars = {};
+                if (artist.likes && artist.likes[uid]) {
+                    artist.likeCount--;
+                    artist.likes[uid] = null;
+                } else {
+                    artist.likeCount++;
+                    if (!artist.likes) {
+                    artist.likes = {};
+                    }
+                    artist.likes[uid] = true;
                 }
-                artist.stars[uid] = true;
             }
-            }
-            return artist;
+            return artist || {
+                likeCount: 1,
+                likes: {
+                    [uid] : true
+                }
+            };
         });   
     }
 
@@ -48,9 +72,11 @@ export default class ArtistBox extends Component {
 
     //console.warn(`El nombre es ${this.props.artist.name}`)
     const { image, name, likes, comments } = this.props.artist;
-    const likeIcon = this.state.like ? 
+    const likeIcon = this.state.liked ? 
         <Icon name="ios-heart" size={30}  color='#e74c3c' /> : 
         <Icon name="ios-heart-outline" size={30}  color='gray' />
+
+    const { likeCount } = this.state 
 
     return (
         <View style={styles.artistBox} >
@@ -63,7 +89,7 @@ export default class ArtistBox extends Component {
                             {likeIcon}
                         </TouchableOpacity>
                         
-                        <Text style={styles.count} >{likes}</Text>
+                        <Text style={styles.count} >{likeCount}</Text>
                     </View>
                     <View style={styles.iconContainer}>
                         <Icon name="ios-chatboxes-outline" size={30} color='gray' ></Icon>
