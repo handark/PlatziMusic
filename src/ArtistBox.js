@@ -15,7 +15,9 @@ export default class ArtistBox extends Component {
 
     state = {
         liked: false,
-        likeCount: 0
+        likeCount: 0,
+        commentsCount: 0,
+        listaComentarios: []
     }
 
     componentWillMount(){
@@ -25,12 +27,25 @@ export default class ArtistBox extends Component {
             if(artist){
                 this.setState({
                     likeCount: artist.likeCount,
-                    liked: artist.likes && artist.likes[uid]
+                    liked: artist.likes && artist.likes[uid],
                 })
+                this.listComnnets(artist)
             }
         } )
+
     }
 
+
+    listComnnets = (artist) => {
+        const { uid } = firebaseAut.currentUser
+         this.getCommentsRef().on('value', shapshot=> {
+            let comments = shapshot.val()
+            if(comments){
+                console.warn('comentarios',comments)
+            }
+            
+        } )       
+    }
 
     handlePress = () => {
        // this.setState({ liked: !this.state.liked })
@@ -41,6 +56,11 @@ export default class ArtistBox extends Component {
     getArtistRef = () => {
         const { id } = this.props.artist
         return firebaseDatabase.ref(`artist/${id}`)
+    }
+
+    getCommentsRef = () => {
+        const { id } = this.props.artist;
+        return firebaseDatabase.ref(`comments/${id}`)
     }
 
     toggleLike = (liked) => {
@@ -63,7 +83,8 @@ export default class ArtistBox extends Component {
                 likeCount: 1,
                 likes: {
                     [uid] : true
-                }
+                },
+                commentsCount: 0
             };
         });   
     }
@@ -77,6 +98,7 @@ export default class ArtistBox extends Component {
         <Icon name="ios-heart-outline" size={30}  color='gray' />
 
     const { likeCount } = this.state 
+    const { commentsCount } = this.state
 
     return (
         <View style={styles.artistBox} >
@@ -93,7 +115,7 @@ export default class ArtistBox extends Component {
                     </View>
                     <View style={styles.iconContainer}>
                         <Icon name="ios-chatboxes-outline" size={30} color='gray' ></Icon>
-                        <Text style={styles.count} >{comments}</Text>
+                        <Text style={styles.count} >{commentsCount}</Text>
                     </View>
                 </View>
             </View>

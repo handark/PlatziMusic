@@ -1,14 +1,10 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- * @flow
- */
 import React, { Component } from 'react';
 import {
   StyleSheet,
   View,
   TextInput,
-  TouchableOpacity
+  TouchableOpacity,
+  Text
 } from 'react-native';
 
 import Icon from 'react-native-vector-icons/Ionicons'
@@ -18,21 +14,15 @@ import ArtistBox from './ArtistBox'
 import CommentList from './CommentList'
 
 export default class ArtistDetailView extends Component {
-
-    constructor(props) {
-        super(props);
-        this.state = {
-            text : '',
-            comments: []
-        }
-    }
-
+  state = {
+    comments: []
+  }
 
   handleSend = () => {
+    const { text } = this.state
     const artistCommentsRef = this.getArtistCommentsRef()
-    const {text} = this.state
     var newCommentRef = artistCommentsRef.push()
-    newCommentRef.set(text);
+    newCommentRef.set({ text });
     this.setState({ text: '' })
   }
 
@@ -41,7 +31,22 @@ export default class ArtistDetailView extends Component {
     return firebaseDatabase.ref(`comments/${id}`)
   }
 
-  handleChangeText = (text) => this.setState({ text })
+  handleChangeText = (text) => this.setState({text})
+
+  componentDidMount() {
+    this.getArtistCommentsRef().on('child_added', this.addComment)
+  }
+
+  addComment = (data) => {
+    const comment = data.val()
+    this.setState({
+      comments: this.state.comments.concat(comment)
+    })
+  }
+
+  componentWillUnmount() {
+    this.getArtistCommentsRef().off('child_added', this.addComment)
+  }
 
   render() {
     const artist = this.props.artist
@@ -50,13 +55,14 @@ export default class ArtistDetailView extends Component {
     return (
       <View style={styles.container}>
         <ArtistBox artist={artist} />
+        <Text style={styles.header}>Comentarios</Text>
         <CommentList comments={comments} />
         <View style={styles.inputContainer}>
           <TextInput
             style={styles.input}
+            value={this.state.text}
             placeholder="Opina sobre este artista"
             onChangeText={this.handleChangeText}
-            value={this.state.text}
           />
           <TouchableOpacity onPress={this.handleSend}>
             <Icon name="ios-send-outline" size={30} color="gray" />
@@ -73,11 +79,12 @@ const styles = StyleSheet.create({
     backgroundColor: 'lightgray',
     paddingTop: 5,
   },
+  header: {
+    fontSize: 20,
+    paddingHorizontal: 15,
+    marginVertical: 10
+  },
   inputContainer: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    left: 0,
     height: 50,
     backgroundColor: 'white',
     paddingHorizontal: 10,
