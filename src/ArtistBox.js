@@ -16,52 +16,44 @@ export default class ArtistBox extends Component {
     state = {
         liked: false,
         likeCount: 0,
-        commentsCount: 0,
-        listaComentarios: []
+        commentsCount: 0
     }
 
-    componentWillMount(){
-        const { uid } = firebaseAut.currentUser
-        this.getArtistRef().on('value',  shapshot => {
-            const artist = shapshot.val()
-            if(artist){
-                this.setState({
-                    likeCount: artist.likeCount,
-                    liked: artist.likes && artist.likes[uid],
-                })
-                this.listComnnets(artist)
-            }
-        } )
-
+    componentWillMount(){   
+        this.getArtistRef().on('value', this.loadArtist )
+        
     }
 
+    componentWillReceiveProps(nextProps){
+        this.setState({
+            commentsCount : nextProps.commentsCount
+        })
+    }
 
-    listComnnets = (artist) => {
+    loadArtist = (data) => {
         const { uid } = firebaseAut.currentUser
-         this.getCommentsRef().on('value', shapshot=> {
-            let comments = shapshot.val()
-            if(comments){
-                console.warn('comentarios',comments)
-            }
-            
-        } )       
+        const artist = data.val()
+        if(artist){
+            this.setState({
+                likeCount: artist.likeCount,
+                liked: artist.likes && artist.likes[uid],
+                
+            }) 
+        }
     }
 
     handlePress = () => {
-       // this.setState({ liked: !this.state.liked })
-
         this.toggleLike(!this.state.liked)
     }
 
     getArtistRef = () => {
         const { id } = this.props.artist
+/*         firebaseDatabase.ref(`comments/${id}`).on('child_added', data => {
+            console.warn('Co',data.val())
+        } ) */
         return firebaseDatabase.ref(`artist/${id}`)
     }
 
-    getCommentsRef = () => {
-        const { id } = this.props.artist;
-        return firebaseDatabase.ref(`comments/${id}`)
-    }
 
     toggleLike = (liked) => {
         const { uid } = firebaseAut.currentUser
@@ -97,8 +89,7 @@ export default class ArtistBox extends Component {
         <Icon name="ios-heart" size={30}  color='#e74c3c' /> : 
         <Icon name="ios-heart-outline" size={30}  color='gray' />
 
-    const { likeCount } = this.state 
-    const { commentsCount } = this.state
+    const { likeCount, commentsCount } = this.state 
 
     return (
         <View style={styles.artistBox} >

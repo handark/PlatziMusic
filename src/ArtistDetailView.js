@@ -15,7 +15,8 @@ import CommentList from './CommentList'
 
 export default class ArtistDetailView extends Component {
   state = {
-    comments: []
+    comments: [],
+    commentsCount: 0
   }
 
   handleSend = () => {
@@ -23,7 +24,10 @@ export default class ArtistDetailView extends Component {
     const artistCommentsRef = this.getArtistCommentsRef()
     var newCommentRef = artistCommentsRef.push()
     newCommentRef.set({ text });
-    this.setState({ text: '' })
+    this.setState({ 
+      text: '', 
+      commentsCount: this.state.commentsCount + 1
+    })
   }
 
   getArtistCommentsRef = () => {
@@ -39,9 +43,20 @@ export default class ArtistDetailView extends Component {
 
   addComment = (data) => {
     const comment = data.val()
+    
     this.setState({
-      comments: this.state.comments.concat(comment)
+      comments: this.state.comments.concat(comment),
     })
+
+    let commentsCount = 0
+    this.state.comments.forEach( comment => {
+      commentsCount ++
+    });
+
+    this.setState({
+      commentsCount: commentsCount,
+    })
+
   }
 
   componentWillUnmount() {
@@ -49,14 +64,14 @@ export default class ArtistDetailView extends Component {
   }
 
   render() {
-    const artist = this.props.artist
-    const { comments } = this.state
-
+    let artist = this.props.artist
+    const { comments, commentsCount } = this.state
+    
     return (
       <View style={styles.container}>
-        <ArtistBox artist={artist} />
+        <ArtistBox artist={artist}  commentsCount={commentsCount} />
         <Text style={styles.header}>Comentarios</Text>
-        <CommentList comments={comments} />
+        <CommentList comments={comments}  />
         <View style={styles.inputContainer}>
           <TextInput
             style={styles.input}

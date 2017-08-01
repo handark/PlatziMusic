@@ -28,6 +28,7 @@ export default class ArtistList extends Component {
     }
 
      componentWillReceiveProps(newProps) {
+        
         if(newProps.artists !== this.props.artists ){
             this.updateDataSource(newProps.artists)
         }
